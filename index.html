@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>आरोग्य केंद्र - Quick Test Desk</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f1f5f9; padding: 20px; display: flex; justify-content: center; }
+    .box { background: white; max-width: 480px; width: 100%; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    h3 { margin-bottom: 16px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    label { font-size: 13px; font-weight: bold; color: #475569; display: block; margin-top: 10px; margin-bottom: 4px; }
+    input, textarea { width: 100%; box-sizing: border-box; padding: 9px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+    button { width: 100%; background: #2563eb; color: white; border: none; padding: 11px; margin-top: 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px; }
+    button:hover { background: #1d4ed8; }
+    .result { margin-top: 20px; background: #f8fafc; border-left: 4px solid #10b981; padding: 14px; border-radius: 6px; display: none; }
+    .result h4 { margin: 0 0 8px 0; color: #065f46; font-size: 14px; }
+    .result p { margin: 4px 0; font-size: 13px; line-height: 1.4; color: #1e293b; }
+  </style>
+</head>
+<body>
+
+<div class="box">
+  <h3>आरोग्य केंद्र - क्विक टेस्ट</h3>
+
+  <label>मरीज का नाम</label>
+  <input type="text" id="name" value="सुरेश कुमार">
+
+  <label>मोबाइल नंबर (Unique)</label>
+  <input type="text" id="mobile" value="9876543299">
+
+  <label>समस्या / लक्षण (Issue)</label>
+  <input type="text" id="issue" value="गर्दन और ऊपरी पीठ में दर्द">
+
+  <label>विस्तृत शिकायत (Complaints)</label>
+  <textarea id="complaints" rows="2">सुबह उठते ही गर्दन अकड़ जाती है</textarea>
+
+  <button onclick="runTest()">रजिस्टर करें और AI सलाह देखें</button>
+
+  <div id="outputCard" class="result">
+    <h4>डेटा सफलतापूर्वक प्रोसेस हुआ!</h4>
+    <p id="patOut"></p>
+    <hr style="margin: 8px 0; border: none; border-top: 1px dashed #cbd5e1;">
+    <p id="aiOut"></p>
+  </div>
+</div>
+
+<script>
+  async function runTest() {
+    const btn = document.querySelector('button');
+    btn.innerText = "प्रोसेस हो रहा है...";
+    btn.disabled = true;
+
+    const name = document.getElementById('name').value;
+    const mobile = document.getElementById('mobile').value;
+    const issue = document.getElementById('issue').value;
+    const complaints = document.getElementById('complaints').value;
+
+    try {
+      // 1. Patient Register API
+      const pRes = await fetch("http://127.0.0.1:8000/api/v1/patients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, mobile, age: 35, gender: "Male", city: "Jaunpur" })
+      });
+      const pData = await pRes.json();
+
+      // 2. Gemini AI Diagnose API
+      const aiRes = await fetch("http://127.0.0.1:8000/api/v1/diagnose", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ issue, complaints })
+      });
+      const aiData = await aiRes.json();
+      
+      let parsed = {};
+      try {
+        parsed = typeof aiData.result === "string" ? JSON.parse(aiData.result) : aiData.result;
+      } catch (e) {
+        parsed = { advice: aiData.result };
+      }
+
+      // Display Results
+      document.getElementById('outputCard').style.display = "block";
+      document.getElementById('patOut').innerHTML = `
+        <strong>Patient ID:</strong> ${pData.id || "Already Registered"}<br>
+        <strong>नाम:</strong> ${name} | <strong>डेटाबेस:</strong> Supabase PostgreSQL
+      `;
+      document.getElementById('aiOut').innerHTML = `
+        <strong>AI मॉडल टियर:</strong> ${aiData.source || "Primary"}<br>
+        <strong>एक्यूप्रेशर पॉइंट्स:</strong> ${parsed.points || "LI4, GB20"}<br>
+        <strong>सलाह / परहेज:</strong> ${parsed.advice || "गर्म पानी पिएं"}
+      `;
+    } catch (err) {
+      alert("एरर: " + err.message);
+    } finally {
+      btn.innerText = "रजिस्टर करें और AI सलाह देखें";
+      btn.disabled = false;
+    }
+  }
+</script>
+
+</body>
+</html>
