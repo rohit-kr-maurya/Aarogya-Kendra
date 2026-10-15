@@ -5,7 +5,7 @@ A robust, enterprise-grade clinical management and AI-assisted acupressure diagn
 ## Architecture Highlights
 - **FastAPI Core**: Asynchronous RESTful API endpoints for patient records and visit history.
 - **Relational Persistence**: SQLAlchemy ORM integrated with hosted PostgreSQL on Supabase (Session Pooler).
-- **Dual-Tier Resilient AI Failover**: Primary diagnosis routed via Gemini 2.5 Flash, automatically falling back to Flash-Lite under latency/rate-limit pressures.
+- **Dual-Tier Resilient AI Failover**: Primary diagnosis routed via Gemini 3.1 Flash Lite, automatically falling back to Flash-Lite under latency/rate-limit pressures.
 - **Data Integrity**: Strict runtime input/output validation powered by Pydantic v2 schemas.
 
 ## Tech Stack
